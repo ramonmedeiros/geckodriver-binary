@@ -8,17 +8,48 @@ import os
 import subprocess
 import re
 
-__author__ = 'Daniel Kaiser <d.kasier@fz-juelich.de>'
+__author__ = 'Ramon Medeiros <ramon.medeiros@gmail.com>'
 
 
-def get_chromedriver_filename():
+def get_geckodriver_filename():
     """
     Returns the filename of the binary for the current platform.
     :return: Binary filename
     """
     if sys.platform.startswith('win'):
-        return 'chromedriver.exe'
-    return 'chromedriver'
+        return 'geckodriver.exe'
+    return 'geckodriver'
+
+
+def get_geckodriver_url(version):
+    """
+    Generates the download URL for current platform , architecture and the given version.
+    Supports Linux, MacOS and Windows.
+    :param version: geckodriver version string
+    :return: Download URL for geckodriver
+    """
+    base_url = 'https://github.com/mozilla/geckodriver/releases/download/'
+
+    # get arch
+    architecture = 32
+    if sys.maxsize > 2 ** 32:
+        architecture = 64
+
+    # get platform
+    extension = '.tar.gz'
+    if sys.platform.startswith('linux'):
+        platform = 'linux'
+    elif sys.platform == 'darwin':
+        platform = 'macos'
+        architecture = ''
+        return base_url + version + '/geckodriver-' + version + '-' + platform  + extension
+    elif sys.platform.startswith('win'):
+        platform = 'win'
+        extension = '.zip'
+    else:
+        raise RuntimeError('Could not determine geckodriver download URL for this platform.')
+    return base_url + version + '/geckodriver-' + version + '-'+ platform +  architecture + extension
+
 
 
 def get_variable_separator():
@@ -29,28 +60,6 @@ def get_variable_separator():
     if sys.platform.startswith('win'):
         return ';'
     return ':'
-
-
-def get_chromedriver_url(version):
-    """
-    Generates the download URL for current platform , architecture and the given version.
-    Supports Linux, MacOS and Windows.
-    :param version: chromedriver version string
-    :return: Download URL for chromedriver
-    """
-    base_url = 'https://chromedriver.storage.googleapis.com/'
-    if sys.platform.startswith('linux') and sys.maxsize > 2 ** 32:
-        platform = 'linux'
-        architecture = '64'
-    elif sys.platform == 'darwin':
-        platform = 'mac'
-        architecture = '64'
-    elif sys.platform.startswith('win'):
-        platform = 'win'
-        architecture = '32'
-    else:
-        raise RuntimeError('Could not determine chromedriver download URL for this platform.')
-    return base_url + version + '/chromedriver_' + platform + architecture + '.zip'
 
 
 def find_binary_in_path(filename):
@@ -80,15 +89,15 @@ def check_version(binary, required_version):
     return False
 
 
-def get_chromedriver_path():
+def get_geckodriver_path():
     """
-    :return: path of the chromedriver binary
+    :return: path of the geckodriver binary
     """
     return os.path.abspath(os.path.dirname(__file__))
 
 
-def print_chromedriver_path():
+def print_geckodriver_path():
     """
-    Print the path of the chromedriver binary.
+    Print the path of the geckodriver binary.
     """
-    print(get_chromedriver_path())
+    print(get_geckodriver_path())
