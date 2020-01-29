@@ -1,8 +1,9 @@
 from setuptools import setup
 from setuptools.command.build_py import build_py
-from chromedriver_binary.utils import get_chromedriver_filename, get_chromedriver_url, find_binary_in_path, check_version
+from geckodriver_binary.utils import get_geckodriver_filename, get_geckodriver_url, find_binary_in_path, check_version
 
 import os
+import tarfile
 import zipfile
 
 try:
@@ -12,65 +13,69 @@ except ImportError:
     from StringIO import StringIO as BytesIO
     from urllib2 import urlopen, URLError
 
-__author__ = 'Daniel Kaiser <d.kasier@fz-juelich.de>'
+__author__ = 'Ramon Medeiros <ramon.rnm@gmail.com>'
 
 
 with open('README.md') as readme_file:
     long_description = readme_file.read()
 
 
-class DownloadChromedriver(build_py):
+class DownloadGeckodriver(build_py):
     def run(self):
         """
-        Downloads, unzips and installs chromedriver.
-        If a chromedriver binary is found in PATH it will be copied, otherwise downloaded.
+        Downloads, unzips and installs geckodriver.
+        If a geckodriver binary is found in PATH it will be copied, otherwise downloaded.
         """
-        chromedriver_version='80.0.3987.16'
-        chromedriver_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'chromedriver_binary')
-        chromedriver_filename = find_binary_in_path(get_chromedriver_filename())
-        if chromedriver_filename and check_version(chromedriver_filename, chromedriver_version):
-            print("\nChromedriver already installed at {}...\n".format(chromedriver_filename))
-            new_filename = os.path.join(chromedriver_dir, get_chromedriver_filename())
-            self.copy_file(chromedriver_filename, new_filename)
+        geckodriver_version="@@GECKODRIVER_VERSION@@"
+        geckodriver_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'geckodriver_binary')
+        geckodriver_filename = find_binary_in_path(get_geckodriver_filename())
+        if geckodriver_filename and check_version(geckodriver_filename, geckodriver_version):
+            print("\ngeckodriver already installed at {}...\n".format(geckodriver_filename))
+            new_filename = os.path.join(geckodriver_dir, get_geckodriver_filename())
+            self.copy_file(geckodriver_filename, new_filename)
         else:
-            chromedriver_bin = get_chromedriver_filename()
-            chromedriver_filename = os.path.join(chromedriver_dir, chromedriver_bin)
-            if not os.path.isfile(chromedriver_filename) or not check_version(chromedriver_filename, chromedriver_version):
-                print("\nDownloading Chromedriver...\n")
-                if not os.path.isdir(chromedriver_dir):
-                    os.mkdir(chromedriver_dir)
-                url = get_chromedriver_url(version=chromedriver_version)
+            geckodriver_bin = get_geckodriver_filename()
+            geckodriver_filename = os.path.join(geckodriver_dir, geckodriver_bin)
+            if not os.path.isfile(geckodriver_filename) or not check_version(geckodriver_filename, geckodriver_version):
+                print("\nDownloading geckodriver...\n")
+                if not os.path.isdir(geckodriver_dir):
+                    os.mkdir(geckodriver_dir)
+                url = get_geckodriver_url(version=geckodriver_version)
                 try:
                     response = urlopen(url)
                     if response.getcode() != 200:
                         raise URLError('Not Found')
                 except URLError:
-                    raise RuntimeError('Failed to download chromedriver archive: {}'.format(url))
+                    raise RuntimeError('Failed to download geckodriver archive: {}'.format(url))
                 archive = BytesIO(response.read())
-                with zipfile.ZipFile(archive) as zip_file:
-                    zip_file.extract(chromedriver_bin, chromedriver_dir)
+                if url.endswith(".zip") is True:
+                    with zipfile.ZipFile(archive) as zip_file:
+                        zip_file.extract(geckodriver_bin, geckodriver_dir)
+                elif url.endswith(".tar.gz") is True:
+                    with tarfile.open(fileobj=archive, mode="r:gz") as tar_file:
+                        tar_file.extractall(path=geckodriver_dir)
             else:
-                print("\nChromedriver already installed at {}...\n".format(chromedriver_filename))
-            if not os.access(chromedriver_filename, os.X_OK):
-                os.chmod(chromedriver_filename, 0o744)
+                print("\ngeckodriver already installed at {}...\n".format(geckodriver_filename))
+            if not os.access(geckodriver_filename, os.X_OK):
+                os.chmod(geckodriver_filename, 0o744)
         build_py.run(self)
 
 
 setup(
-    name="chromedriver-binary",
-    version="80.0.3987.16.0",
-    author="Daniel Kaiser",
-    author_email="daniel.kaiser94@gmail.com",
-    description="Installer for chromedriver.",
+    name="geckodriver-binary",
+    version="@@GECKODRIVER_VERSION@@",
+    author="Ramon Medeiros",
+    author_email="ramon.rnm@gmail.com",
+    description="Installer for geckodriver.",
     license="MIT",
-    keywords="chromedriver chrome browser selenium splinter",
-    url="https://github.com/danielkaiser/python-chromedriver-binary",
-    packages=['chromedriver_binary'],
+    keywords="geckodriver gecko browser selenium splinter",
+    url="https://github.com/ramonmedeiros/geckodriver-binary",
+    packages=['geckodriver_binary'],
     package_data={
-        'chromedriver_binary': ['chromedriver*']
+        'geckodriver_binary': ['geckodriver*']
     },
     entry_points={
-        'console_scripts': ['chromedriver-path=chromedriver_binary.utils:print_chromedriver_path'],
+        'console_scripts': ['geckodriver-path=geckodriver_binary.utils:print_geckodriver_path'],
     },
     long_description_content_type='text/markdown',
     long_description=long_description,
@@ -81,5 +86,5 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "License :: OSI Approved :: MIT License",
     ],
-    cmdclass={'build_py': DownloadChromedriver}
+    cmdclass={'build_py': DownloadGeckodriver}
 )

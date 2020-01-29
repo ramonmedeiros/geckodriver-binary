@@ -1,0 +1,48 @@
+name: build package
+
+on:
+  - push
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine requests
+      shell: bash
+
+    - name: Generate config files
+      run: |
+        git config --global user.email "ramon.rnm@gmail.com"
+        git config --global user.name "Ramon Medeiros"
+      shell: bash
+
+    - name: Build and publish
+      env:
+          TOKEN: ${{ secrets.PIPY_TOKEN }}
+      run: |
+        for VERSION in $(python get_versions.py); do
+            sed -i "s/@@GECKODRIVER_VERSION@@/$VERSION/g" README.md;
+            sed -i "s/@@GECKODRIVER_VERSION@@/$VERSION/g" setup.py;
+            git add README.md setup.py;
+            git commit -m "geckodriver version $VERSION";
+            git tag -a -m "$VERSION" "$VERSION";
+            git push -f origin --tags;
+            make package
+            twine upload -u __token__ -p $TOKEN dist/*
+            git clean -df
+            git reset --hard
+        done
+      shell: bash
+
