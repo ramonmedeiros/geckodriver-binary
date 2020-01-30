@@ -26,7 +26,7 @@ class DownloadGeckodriver(build_py):
         Downloads, unzips and installs geckodriver.
         If a geckodriver binary is found in PATH it will be copied, otherwise downloaded.
         """
-        geckodriver_version="@@GECKODRIVER_VERSION@@"
+        geckodriver_version="v0.25.0"
         geckodriver_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'geckodriver_binary')
         geckodriver_filename = find_binary_in_path(get_geckodriver_filename())
         if geckodriver_filename and check_version(geckodriver_filename, geckodriver_version):
@@ -63,7 +63,7 @@ class DownloadGeckodriver(build_py):
 
 setup(
     name="geckodriver-binary",
-    version="@@GECKODRIVER_VERSION@@",
+    version="v0.25.0",
     author="Ramon Medeiros",
     author_email="ramon.rnm@gmail.com",
     description="Installer for geckodriver.",

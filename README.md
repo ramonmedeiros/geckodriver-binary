@@ -1,5 +1,5 @@
 # geckodriver-binary
-Downloads and installs the [geckodriver](https://github.com/mozilla/geckodriver) binary version @@GECKODRIVER_VERSION@@ or automated testing of webapps. The installer supports Linux, MacOS and Windows operating systems.
+Downloads and installs the [geckodriver](https://github.com/mozilla/geckodriver) binary version v0.25.0 or automated testing of webapps. The installer supports Linux, MacOS and Windows operating systems.
 
 ## Installation
 
